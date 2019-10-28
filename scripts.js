@@ -1,63 +1,57 @@
-
-// const getData = url => {
-//   return axios.get(url).then(response => response.data);
-// };
-
-const products = axios
-  .get('https://acme-users-api-rev.herokuapp.com/api/products')
-  .then(response => response.data);
-const companies = axios
-  .get('https://acme-users-api-rev.herokuapp.com/api/companies')
-  .then(response => response.data);
-console.log(window.location);
-
-Promise.all([products, companies]).then(response => {
-  const [products, companies] = response;
-  const table = document.querySelector('#container');
-  const mainNav = document.querySelector('#main-nav');
-  //   render(products, body);
-  renderNav(response, mainNav);
-  renderTable(companies, table);
-});
-
+const table = document.querySelector('#container');
+let id = '';
+const renderTitle = (data, container) => {
+  data = data[0].toUpperCase() + data.slice(1);
+  container.innerHTML = data;
+}
 const renderTable = (data, container) => {
-  //<table class='table table-striped'> </table>
   const html = `
-    
-        <thead>
-        <tr>
-                ${Object.keys(data[0])
-                  .map(
-                    key =>
-                      `<th scope='col'> ${key[0].toUpperCase() +
-                        key.slice(1)} </th>`
-                  )
-                  .join('')}
-            </tr>
-        </thead>
-        <tbody>
-        ${data
-          .map(obj => {
-            return `<tr>
-                ${Object.values(obj)
-                  .map(value => {
-                    return `<td>${value}</td>`;
-                  })
-                  .join('')}
-            </tr>`;
-          })
-          .join('')}
-        </tbody>`;
+         <thead>
+             <tr>
+                 ${Object.keys(data[0])
+                   .map(
+                     key =>
+                       `<th scope='col'> ${key[0].toUpperCase() +
+                         key.slice(1)} </th>`
+                   )
+                   .join('')}
+             </tr>
+         </thead>
+         <tbody>
+         ${data
+           .map(obj => {
+             return `<tr>
+                 ${Object.values(obj)
+                   .map(value => {
+                     return `<td>${value}</td>`;
+                   })
+                   .join('')}
+             </tr>`;
+           })
+           .join('')}
+         </tbody>`;
   container.innerHTML = html;
 };
 
-const renderNav = (data, container) => {
-  const html = data
-    .map(arr => {
-      return `<li class="nav-item">
-     <a class="nav-link active" href="#${2 + 2}">(${arr.length})</a>
-     </li>`;
-    })
-    .join('');
-  container.innerHTML = html;
-};
+const fetchAndRender = () => {
+  let API;
+  API = axios
+    .get(`https://acme-users-api-rev.herokuapp.com/api/${id}`)
+    .then(response => response.data);
+  Promise.all([API]).then(response => {
+    const [data] = response;
+    renderTable(data, table);
+  });
+}
+if (!id) {
+  id = 'companies';
+  window.location.hash = id;
+  renderTitle(id, document.querySelector('#title'));
+  fetchAndRender();
+}
+
+window.addEventListener('hashchange', ev => {
+  id = window.location.hash.slice(1);
+  renderTitle(id, document.querySelector('#title'));
+  fetchAndRender();
+});
